@@ -183,6 +183,16 @@ class Vector{
 		ctx.lineTo(Viewer.x0 + x, Viewer.y0 + y);
 		ctx.stroke();
 	}
+	
+	drawNode(ctx){
+		const x = Viewer.getX(this);
+		const y = Viewer.getY(this);
+		ctx.strokeStyle = this.color;
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.arc(Viewer.x0 + x, Viewer.y0 + y, Viewer.unit * 0.008, 0, Math.PI * 2);
+		ctx.fill();
+	}
 }
 
 class VectorSystem{
@@ -216,7 +226,7 @@ class VectorSystem{
 	}
 
 	addWave(source, target, color){
-		target.color = "#666";
+		target.color = color;
 		Viewer.applyContraction(target);
 		this.nodes.push(target);
 		this.waves.push(new Swave(source, target, color));
@@ -230,12 +240,23 @@ class VectorSystem{
 		
 		let source = new Vector(0, 0, 0);
 		source.color = "#fc0";
-		this.addWave(source, new Vector(0, 0, 0.5), "#9df");
-		this.addWave(source, new Vector(0, 0, -0.5), "#9df");
-		this.addWave(source, new Vector(0.5, 0, 0), "#09b");
-		this.addWave(source, new Vector(-0.5, 0, 0), "#09b");
-		this.addWave(source, new Vector(0, 0.5, 0), "#09b");
-		this.addWave(source, new Vector(0, -0.5, 0), "#09b");
+		const maxRadius = 0.618;
+		const primes = [2, 3];
+		for (let i = 0; i < 24; ++i)
+		{
+			const angle = (Math.PI * (i + 0.5)) / 12;
+			for (const n of primes)
+			{
+				let v = new Vector(maxRadius / n, 0, 0);
+				v.rotateZ(angle);
+				this.addWave(source, v, "#8fd");
+			}
+			
+			let v = new Vector(maxRadius, 0, 0);
+			v.rotateZ(angle);
+			this.addWave(source, v, "#07c");
+		}
+		
 		this.nodes.push(source);
 
 		this.animate = true;
@@ -248,7 +269,7 @@ class VectorSystem{
 		ctx.clearRect(0, 0, Viewer.width, Viewer.height);
 		ctx.beginPath();
 		ctx.strokeStyle = "#bbb";
-		ctx.fillStyle = "#f2f2f2";
+		ctx.fillStyle = "#f4f4f4";
 		ctx.arc(Viewer.x0, Viewer.y0, Viewer.unit, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.stroke();
@@ -259,18 +280,20 @@ class VectorSystem{
 			if (!((vpz < 0) ^ (v.y <= 0))) v.draw(ctx);
 		}
 		
+		ctx.globalAlpha = 0.5;
 		for (const w of this.waves){
 			if (!((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
+		ctx.globalAlpha = 1;
 		
 		for (const n of this.nodes){
-			if (!((vpz < 0) ^ (n.y <= 0))) n.draw(ctx);
+			if (!((vpz < 0) ^ (n.y <= 0))) n.drawNode(ctx);
 		}
-
+		
 		const absPitchZ = Math.abs(Viewer.pitchZ);
 		ctx.beginPath();
 		ctx.strokeStyle = "#bbb";
-		ctx.fillStyle = Viewer.pitchZ < 0 ? "rgba(218,218,218,.7)" : "rgba(234,234,234,.7)";
+		ctx.fillStyle = Viewer.pitchZ < 0 ? "rgba(230,230,230,.6)" : "rgba(242,242,242,.6)";
 		ctx.ellipse(Viewer.x0, Viewer.y0, Viewer.unit, Viewer.unit * absPitchZ, 0, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.stroke();
@@ -279,15 +302,18 @@ class VectorSystem{
 			if ((vpz < 0) ^ (v.y <= 0)) v.draw(ctx);
 		}
 
+		ctx.globalAlpha = 0.5;
 		for (const w of this.waves){
 			if (((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
+		ctx.globalAlpha = 1;
 		
 		for (const n of this.nodes){
-			if (((vpz < 0) ^ (n.y <= 0))) n.draw(ctx);
+			if (((vpz < 0) ^ (n.y <= 0))) n.drawNode(ctx);
 		}
 		
 		for (const w of this.waves) w.drawBubble(ctx);
+
 		
 		ctx.fillStyle = "#888";
 		ctx.font = "16px Arial";
