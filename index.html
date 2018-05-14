@@ -4,7 +4,6 @@
 <meta charset='utf-8' />
 <title>Special relativity visualized with bubbles.</title>
 </head>
-<style>*{margin: 0;padding: 0;}</style>
 <body/>
 <script>
 "use strict";
@@ -429,8 +428,8 @@ function updateFrame(){
 	if (m_vectorSystem.resize){
 		m_vectorSystem.resize = false;
 		let canvas = m_vectorSystem.canvas;
-		canvas.width = parent.innerWidth;
-		canvas.height = parent.innerHeight;
+		canvas.width = parent.innerWidth - 12;
+		canvas.height = parent.innerHeight - 12;
 		Viewer.setDimensions(canvas.width, canvas.height);
 		m_vectorSystem.redraw = true;
 	}
