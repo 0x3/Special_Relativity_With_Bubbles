@@ -87,14 +87,13 @@ class Viewer{
 }
 
 class Swave{
-	constructor(source, target, color){
+	constructor(source, target){
 		this.x = source.x;
 		this.y = source.y;
 		this.z = source.z;
 		this.source = source;
 		this.target = target;
 		this.radius = 0;
-		this.color = color;
 		this.time = Swave.collisionTime(source, target);
 	}
 	
@@ -121,9 +120,11 @@ class Swave{
 		if (this.radius === 0) return;
 		const x = Viewer.getX(this);
 		const y = Viewer.getY(this);
-		ctx.strokeStyle = this.color;
+		const x0 = Viewer.getX(this.source);
+		const y0 = Viewer.getY(this.source);
+		ctx.strokeStyle = this.source.color;
 		ctx.beginPath();
-		ctx.moveTo(Viewer.x0, Viewer.y0);
+		ctx.moveTo(Viewer.x0 + x0, Viewer.y0 + y0);
 		ctx.lineTo(Viewer.x0 + x, Viewer.y0 + y);
 		ctx.stroke();
 	}
@@ -132,7 +133,7 @@ class Swave{
 		if (this.radius === 0) return;
 		const x = Viewer.getX(this);
 		const y = Viewer.getY(this);
-		ctx.strokeStyle = this.color;
+		ctx.strokeStyle = '#0bf';
 		ctx.beginPath();
 		ctx.arc(Viewer.x0 + x, Viewer.y0 + y, Viewer.unit * this.radius, 0, Math.PI * 2);
 		ctx.stroke();
@@ -204,26 +205,26 @@ class VectorSystem{
 		this.vectors = [];
 		
 		this.unitUp = new Vector (0, -1, 0);
-		this.unitUp.color = "#99f";
+		this.unitUp.color = "#555";
 		this.vectors.push(this.unitUp);
 		this.unitDown = new Vector (0, 1, 0);
-		this.unitDown.color = "#77b";
+		this.unitDown.color = "#aaa";
 		this.vectors.push(this.unitDown);
 		
-		this.unitLeft = new Vector (1, 0, 0);
-		this.unitLeft.color = "#9f9";
+		this.unitLeft = new Vector (-1, 0, 0);
+		this.unitLeft.color = "#bdb";
 		this.vectors.push(this.unitLeft);
-		this.unitRight = new Vector (-1, 0, 0);
-		this.unitRight.color = "#7b7";
+		this.unitRight = new Vector (1, 0, 0);
+		this.unitRight.color = "#9a9";
 		this.vectors.push(this.unitRight);
 		
 		this.unitFront = new Vector (0, 0, -1);
-		this.unitFront.color = "#b77";
+		this.unitFront.color = "#ba9";
 		this.vectors.push(this.unitFront);
 		this.unitBack = new Vector (0, 0, 1);
-		this.unitBack.color = "#f99";
+		this.unitBack.color = "#dcb";
 		this.vectors.push(this.unitBack);
-
+		
 		this.reset();
 	}
 
@@ -231,7 +232,7 @@ class VectorSystem{
 		target.color = color;
 		Viewer.applyContraction(target);
 		this.nodes.push(target);
-		this.waves.push(new Swave(source, target, color));
+		this.waves.push(new Swave(source, target));
 	}
 	
 	reset()
@@ -274,7 +275,7 @@ class VectorSystem{
 			if (!((vpz < 0) ^ (v.y <= 0))) v.draw(ctx);
 		}
 		
-		ctx.globalAlpha = 0.25;
+		ctx.globalAlpha = 0.5;
 		for (const w of this.waves){
 			if (!((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
@@ -295,7 +296,7 @@ class VectorSystem{
 		for (const v of this.vectors){
 			if ((vpz < 0) ^ (v.y <= 0)) v.draw(ctx);
 		}
-		ctx.globalAlpha = 0.25;
+		ctx.globalAlpha = 0.5;
 		for (const w of this.waves){
 			if (((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
