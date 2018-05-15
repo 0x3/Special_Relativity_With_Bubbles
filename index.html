@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset='utf-8' />
-<title>Special relativity visualized with bubbles.</title>
-</head>
+<style>*{margin: 0;padding: 0;border: 0; overflow: hidden}</style>
+<head><meta charset='utf-8' /><title>Special relativity visualized with bubbles.</title></head>
 <body/>
 <script>
 "use strict";
 (() => {
-const ANIMATION_SPEED = 0.005;
+const ANIMATION_SPEED = 0.005
 const MAX_SPEED = 0.999999;
 
 function normalizeAngle(angle){
@@ -26,6 +24,7 @@ class Viewer{
 		Viewer.width = 1;
 		Viewer.height = 1;
 		Viewer.unit = 1;
+		Viewer.propagationSpeed = ANIMATION_SPEED;
 		Viewer.setPitch(pitch);
 		Viewer.setYaw(yaw);
 		Viewer.d = new Vector(0, 0, 0);
@@ -45,7 +44,7 @@ class Viewer{
 		Viewer.contractionFactor = Math.sqrt(1 - m * m);
 		Viewer.lorentzFactor = 1 / Viewer.contractionFactor;
 		Viewer.d.assign(v); 
-		Viewer.d.multiply(ANIMATION_SPEED);
+		Viewer.d.multiply(Viewer.propagationSpeed);
 	}
 	
 	static setDimensions(width, height){
@@ -103,7 +102,7 @@ class Swave{
 		const vx = Viewer.d.x;
 		const vy = Viewer.d.y;
 		const vz = Viewer.d.z;
-		const dr = ANIMATION_SPEED;
+		const dr = Viewer.propagationSpeed;
 		// Calculate future collision time
 		const dx = (p.x - o.x);
 		const dy = (p.y - o.y);
@@ -191,7 +190,6 @@ class Vector{
 	drawNode(ctx){
 		const x = Viewer.getX(this);
 		const y = Viewer.getY(this);
-		ctx.strokeStyle = this.color;
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
 		ctx.arc(Viewer.x0 + x, Viewer.y0 + y, Viewer.unit * 0.008, 0, Math.PI * 2);
@@ -245,17 +243,9 @@ class VectorSystem{
 		let source = new Vector(0, 0, 0);
 		source.color = "#fc0";
 		const maxRadius = 0.618;
-		const primes = [2, 3];
 		for (let i = 0; i < 24; ++i)
 		{
 			const angle = (Math.PI * (i + 0.5)) / 12;
-			for (const n of primes)
-			{
-				let v = new Vector(maxRadius / n, 0, 0);
-				v.rotateZ(angle);
-				this.addWave(source, v, "#8fd");
-			}
-			
 			let v = new Vector(maxRadius, 0, 0);
 			v.rotateZ(angle);
 			this.addWave(source, v, "#07c");
@@ -284,7 +274,7 @@ class VectorSystem{
 			if (!((vpz < 0) ^ (v.y <= 0))) v.draw(ctx);
 		}
 		
-		ctx.globalAlpha = 0.5;
+		ctx.globalAlpha = 0.25;
 		for (const w of this.waves){
 			if (!((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
@@ -305,8 +295,7 @@ class VectorSystem{
 		for (const v of this.vectors){
 			if ((vpz < 0) ^ (v.y <= 0)) v.draw(ctx);
 		}
-
-		ctx.globalAlpha = 0.5;
+		ctx.globalAlpha = 0.25;
 		for (const w of this.waves){
 			if (((vpz < 0) ^ (w.y <= 0))) w.draw(ctx);
 		}
@@ -317,7 +306,7 @@ class VectorSystem{
 		}
 		
 		for (const w of this.waves) w.drawBubble(ctx);
-
+		
 		
 		ctx.fillStyle = "#888";
 		ctx.font = "16px Arial";
@@ -340,7 +329,7 @@ class VectorSystem{
 				w.target = w.source;
 				w.source = target;
 				// Update wave radius
-				w.radius = dt * ANIMATION_SPEED;
+				w.radius = dt * Viewer.propagationSpeed;
 				// Calculate time between previous and next collision
 				const newTarget = w.target;
 				w.time += Swave.collisionTime(w, {
@@ -348,7 +337,7 @@ class VectorSystem{
 					y:newTarget.y - dt * Viewer.d.y,
 					z:newTarget.z - dt * Viewer.d.z});
 			}
-			w.radius += ANIMATION_SPEED;
+			w.radius += Viewer.propagationSpeed;
 		}
 		
 		for (const n of this.waves)
@@ -369,6 +358,7 @@ function initilizeMouser(canvas, system){
 	let y0 = 0;
 	let moving = false;
 	let sign = 1;
+	let tId = -1;
 	
 	canvas.onmousedown = function(e){
 		if (e.buttons === 1){
@@ -410,7 +400,7 @@ function initilizeMouser(canvas, system){
 				if (v.magnitude() < 1.01)
 				{
 					Viewer.setVelocity(v);
-					m_vectorSystem.reset();
+					system.reset();
 				}
 			}
 		}
@@ -420,6 +410,96 @@ function initilizeMouser(canvas, system){
 	canvas.onmouseenter = function(e){
 		if (e.buttons !== 1) moving = false;
 	};
+
+	canvas.addEventListener("touchstart",
+		function(e){
+			e.preventDefault();
+			let touches = e.changedTouches;
+			console.log('touches len' + touches.length);
+			if (touches.length < 1) return;
+			let t = touches[0];
+			console.log('touch 0 id' + t.identifier);
+			if (t.identifier !== tId)
+			{
+				if (tId !== -1)
+				{
+					Viewer.propagationSpeed =
+						Viewer.propagationSpeed !== ANIMATION_SPEED ?
+						ANIMATION_SPEED : ANIMATION_SPEED * 2;
+					
+					Viewer.setPitch(0);
+					Viewer.setYaw(0);
+					Viewer.setVelocity(new Vector(0, 0, 0));
+					system.reset();
+					moving = false;
+					tId = -1;
+					return;
+				}
+				tId = t.identifier;
+			}
+			x0 = t.clientX;
+			x = x0;
+			y0 = t.clientY;
+			y = y0;
+			moving = true;
+			sign = Viewer.selSign;
+			if (y0 - Viewer.y0 + Viewer.unit > Viewer.selThr) sign *= -1;
+		}, false);
+
+	canvas.addEventListener("touchend",
+		function(e){
+			e.preventDefault();
+			let touches = e.changedTouches;
+			if (touches.length < 1) return;
+			let t = touches[0];
+			if (t.identifier !== tId) return;
+			const dx = t.clientY - y0;
+			const dy = t.clientX - x0;
+			if (0 === Math.abs(dx) + Math.abs(dy)){
+				system.animate = !system.animate;
+				if (system.animate)
+				{
+					const v = new Vector((x0 - Viewer.x0) / Viewer.unit,
+						(y0 - Viewer.y0) / Viewer.unit, 0);
+					if (v.magnitude() < 1.01)
+					{
+						Viewer.setVelocity(v);
+						system.reset();
+}
+				}
+			}
+			moving = false;
+			tId = -1;
+		}, false);
+
+	canvas.addEventListener("touchcancel", 
+		function(e){
+			e.preventDefault();
+			moving = false;
+			tId = -1;
+		}, false);
+
+	canvas.addEventListener("touchmove",
+		function(e){
+			e.preventDefault();
+			if (!moving) return;
+			let touches = e.changedTouches;
+			if (touches.length < 1) return;
+			let t = touches[0];
+			if (t.identifier !== tId) return;
+			const dy = t.clientY - y;
+			const dx = t.clientX - x;
+			if (Math.abs(dy) > Math.abs(dx)){
+				Viewer.setPitch(Viewer.pitch + dy * Math.PI / Viewer.unit);
+			}
+			else{
+				Viewer.setYaw(Viewer.yaw + dx * sign * Math.PI / Viewer.unit);
+			}
+
+			x = t.clientX;
+			y = t.clientY;
+			system.redraw = true;
+		}, false);
 }
 
 let m_vectorSystem;
@@ -428,8 +508,8 @@ function updateFrame(){
 	if (m_vectorSystem.resize){
 		m_vectorSystem.resize = false;
 		let canvas = m_vectorSystem.canvas;
-		canvas.width = parent.innerWidth - 12;
-		canvas.height = parent.innerHeight - 12;
+		canvas.width = parent.innerWidth;
+		canvas.height = parent.innerHeight;
 		Viewer.setDimensions(canvas.width, canvas.height);
 		m_vectorSystem.redraw = true;
 	}
