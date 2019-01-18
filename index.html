@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <style>*{margin:0;padding:0;border:0;overflow:hidden;width:100%;height:100%;background-color:black;}</style>
-<head><meta charset='utf-8' /><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=0"><title>Alpha</title></head>
+<head><meta charset='utf-8' /><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=0"><title>Alphabet Puzzle Game</title></head>
 <body/>
 <script>
-//'use strict';
+'use strict';
 {var p;function aa(a){var b=0;return function(){return b<a.length?{done:!1,value:a[b++]}:{done:!0}}}function r(a){var b="undefined"!=typeof Symbol&&Symbol.iterator&&a[Symbol.iterator];return b?b.call(a):{next:aa(a)}}function ba(){var a=Array(25).keys();if(!(a instanceof Array)){a=r(a);for(var b,c=[];!(b=a.next()).done;)c.push(b.value);a=c}return a}function ca(){da.play();t.reset()}function ea(){fa.play();ha()}
 function v(a,b){b=void 0===b?1:b;this.V=[];this.index=0;if(this.pa=Array.isArray(a)){this.aa=a.length;for(var c=r(a),d=c.next();!d.done;d=c.next())this.V.push(ia(d.value))}else for(this.aa=b,c=0;c<b;++c)this.V.push(ia(a));this.play=function(){if(this.pa){if(2<=this.aa){var a=Math.floor(Math.random()*(this.aa-1));this.index=a<this.index?a:a+1}else this.index=0;a=this.V[this.index];0!==a.currentTime&&(a.currentTime=0);a.play()}else a=this.V[this.index],0!==a.currentTime&&(a.currentTime=0),a.play(),
 ++this.index,this.index>=this.aa&&(this.index=0)};this.stop=function(){for(var a=r(this.V),b=a.next();!b.done;b=a.next())b=b.value,b.pause(),b.currentTime=0}}function ia(a){var b=document.createElement("audio");b.src=a;b.setAttribute("preload","auto");b.setAttribute("controls","none");b.style.display="none";document.body.appendChild(b);return b}function y(a,b,c,d){a.translate(b,c);a.beginPath();a.arc(0,0,d,0,2*Math.PI);a.fill();a.translate(-b,-c)}
